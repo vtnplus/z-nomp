@@ -70,13 +70,15 @@
     },
 
     "mposMode": {
-        "enabled": false,
+        "enabled": true,
         "host": "127.0.0.1",
         "port": 3306,
         "user": "me",
         "password": "mypass",
         "database": "zcl",
         "checkPassword": true,
+	"accountdb" : "",
+	"workerdb" : "",
         "autoCreateWorker": false
     }
 
