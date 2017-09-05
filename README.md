@@ -73,8 +73,9 @@ a good pool operator. For starters be sure to read:
 
 Before Run Install ( Ubuntu 14.04 TLS )
 
-  chmod u+x install-libsodium.sh
-  ./install-libsodium.sh
+chmod u+x install-libsodium.sh
+./install-libsodium.sh
+Run script update nodejs and nvm
 
 #### 1) Downloading & Installing
 
