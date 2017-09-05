@@ -72,11 +72,12 @@ a good pool operator. For starters be sure to read:
    * https://en.bitcoin.it/wiki/Difficulty
 
 Before Run Install ( Ubuntu 14.04 TLS )
-
+```
 chmod u+x install-libsodium.sh
 ./install-libsodium.sh
 Run script update nodejs and nvm
 
+```
 #### 1) Downloading & Installing
 
 Clone the repository and run `npm update` for all the dependencies to be installed:
