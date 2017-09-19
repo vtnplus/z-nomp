@@ -7,6 +7,7 @@ var async = require('async');
 var extend = require('extend');
 
 var redis = require('redis');
+const http = require('http');
 
 var PoolLogger = require('./libs/logUtil.js');
 var CliListener = require('./libs/cliListener.js');
@@ -246,6 +247,7 @@ var spawnPoolWorkers = function(){
                 createPoolWorker(forkId);
             }, 2000);
         }).on('message', function(msg){
+			
             switch(msg.type){
                 case 'banIP':
                     Object.keys(cluster.workers).forEach(function(id) {
@@ -500,6 +502,87 @@ var startProfitSwitch = function(){
 
 
 
+
+var TranPostAZ = function(method, params, config, callback){
+	var body = JSON.stringify({ method: method, params: params })
+    var options = {
+        port: config.port,
+        hostname: config.host,
+        auth: config.user + ':' + config.password,
+        method: 'POST',
+        path: '/',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(body)
+        }
+    };
+    var req = http.request(options, function(res) {
+        res.on('data', function (body) {
+            if (callback != null) {
+                callback(null, JSON.parse(body));
+            }
+        });
+    });
+    req.on('error', function(err) {
+        callback(err, null);
+    });
+    req.write(body);
+    req.end('\n');
+};
+
+
+var TZtransfer = function(from, to, config, coin) {
+	
+    TranPostAZ('z_getbalance', [from], config, function(err, data) {
+        if (err != null) {
+            logger.error('Error: ' + err.message);
+            return;
+        }
+        if (data.result >= (0.5 - coin.txfee)) {
+            var amount = Number((data.result - coin.txfee).toFixed(8));
+            console.log('Transfer', amount, 'from', from, 'to', to);
+            TranPostAZ('z_sendmany', [from, [{ address: to, amount: amount }]], config, function(err, data) {
+                if (err != null) {
+                    logger.error('Error: ' + e.message);
+                } else {
+                    logger.debug('Sent', amount, data)
+                }
+            });
+        } else {
+            logger.debug("Payout", coin.name, 'Send >>>> ' +from);
+        }
+    });
+};
+var startPayMPOS = function(){
+
+    var enabledForAny = false;
+    for (var pool in poolConfigs){
+        var p = poolConfigs[pool];
+        
+		var mpos = p.mposMode.enabled;
+		if(mpos){
+			TZtransfer(p.address, p.zAddress,p.daemons[0],p.coin);
+			//logger.error('Master', 'Payment Processor'+pool, p.coin.name);
+
+			TZtransfer(p.zAddress, p.tAddress, p.daemons[0],p.coin);
+			//logger.error('Master', 'Payment Processor'+pool, p.daemons[0].host);
+			
+		}
+		
+		
+		
+    }
+	
+   
+	
+     setTimeout(function(){
+            startPayMPOS(poolConfigs);
+        }, 600000);
+       
+};
+
+
+
 (function init(){
 
     poolConfigs = buildPoolConfigs();
@@ -513,5 +596,7 @@ var startProfitSwitch = function(){
     startProfitSwitch();
 
     startCliListener();
+	startPayMPOS();
+	
 
 })();
