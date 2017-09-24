@@ -88,6 +88,7 @@ sudo npm install n -g
 sudo n stable
 git clone https://github.com/joshuayabut/node-open-mining-portal.git z-nomp
 cd z-nomp
+npm install -g node-pre-gyp
 npm update
 npm install
 ```
